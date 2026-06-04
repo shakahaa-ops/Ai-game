@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Adventure Game</title>
+  <style>
+    body {
+      background-color: #1a1a2e;
+      color: #e0e0e0;
+      font-family: monospace;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    h1 { color: #f0a500; text-align: center; }
+    #story {
+      background: #16213e;
+      padding: 20px;
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #f0a500;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .player { color: #f0a500; margin: 10px 0; }
+    .ai { color: #e0e0e0; margin: 10px 0; }
+    #input-area { display: flex; gap: 10px; }
+    #userInput {
+      flex: 1;
+      padding: 10px;
+      background: #16213e;
+      border: 1px solid #f0a500;
+      color: white;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 20px;
+      background: #f0a500;
+      border: none;
+      color: black;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚔️ AI Adventure Game</h1>
+  <div id="story"></div>
+  <div id="input-area">
+    <input type="text" id="userInput" placeholder="What do you do?" />
+    <button onclick="sendAction()">Send</button>
+  </div>
+
+  <script>
+    let history = [];
+
+    window.onload = async () => {
+      await sendMessage("Start the adventure. Set the scene.");
+    };
+
+    async function sendAction() {
+      const input = document.getElementById('userInput');
+      const action = input.value.trim();
+      if (!action) return;
+      addMessage('player', '> ' + action);
+      input.value = '';
+      await sendMessage(action);
+    }
+
+    async function sendMessage(message) {
+      const res = await fetch('/api/game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, history })
+      });
+      const data = await res.json();
+      history.push(
+        { role: 'user', parts: [{ text: message }] },
+        { role: 'model', parts: [{ text: data.response }] }
+      );
+      addMessage('ai', data.response);
+    }
+
+    function addMessage(type, text) {
+      const story = document.getElementById('story');
+      const p = document.createElement('p');
+      p.className = type;
+      p.textContent = text;
+      story.appendChild(p);
+      story.scrollTop = story.scrollHeight;
+    }
+
+    document.getElementById('userInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendAction();
+    });
+  </script>
+</body>
+</html>
