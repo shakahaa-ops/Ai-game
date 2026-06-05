@@ -77,9 +77,9 @@
       });
       const data = await res.json();
       history.push(
-        { role: 'user', parts: [{ text: message }] },
-        { role: 'model', parts: [{ text: data.response }] }
-      );
+  { role: 'user', content: message },
+  { role: 'assistant', content: data.response }
+);
       addMessage('ai', data.response);
     }
 
